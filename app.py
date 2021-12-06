@@ -7,6 +7,8 @@ https://pdf.sciencedirectassets.com/280203/1-s2.0-S1877050920X00056/1-s2.0-S1877
 """
 
 '''
+name
+email
 Skills
 GPA
 companies names
@@ -14,23 +16,84 @@ companies names
 
 import pdfplumber
 import spacy
-from spacy.matcher import Matcher
+import re
+import csv
 
-file_name = input("Enter the location of the resume (PDF)")
+
+class Resume:
+    def __init__(self):
+        self.gpa = -1
+        self.skills = set()
+        self.email = ""
+        self.name = ""
+        self.company_names = []
+
+    def set_name(self, name):
+        self.name = name
+
+    def set_gpa(self, gpa):
+        self.gpa = gpa
+
+    def add_skills(self, skill):
+        self.skills.add(skill)
+
+    def set_email(self, email):
+        self.email = email
+
+    def __repr__(self):
+        return f"name : {self.name} ; GPA : {self.gpa} ; skills: {self.skills} ; company names : {self.company_names}"
+
+
+class Data:
+    def __init__(self, loc):
+        self.loc = loc
+        self.skills = set()
+        self.loadSkills()
+
+    def loadSkills(self):
+        with open(self.loc, "r") as f:
+            csv_reader = csv.reader(f)
+            for row in csv_reader:
+                self.skills.add(row[0].lower().strip())
+
+
+class Parser:
+    def __init__(self):
+        self.data = Data("skills.csv")
+
+    def parse_resume(self, text):
+        resume = Resume()
+
+        nlp = spacy.load("en_core_web_sm")
+        doc = nlp(text)
+
+        # Assuming the GPA value is a single token (that is there is no space between the numbers and '.' )
+        for token in doc:
+            token_text = token.text.lower()
+            if token_text == "gpa":
+                resume.set_gpa(float(token.right_edge.text))
+            elif token_text in self.data.skills:
+                resume.add_skills(token_text)
+            elif re.fullmatch(r"\w+@\w+.\w+", token_text) is not None:
+                resume.set_email(token_text)
+
+        name = ""
+        min_index = float("inf")
+        for ent in doc.ents:
+            if ent.label_ == "PERSON" and ent.start < min_index:
+                min_index = ent.start
+                name = ent.text
+        resume.set_name(name)
+
+        return resume
+
+
+# file_name = input("Enter the location of the resume (PDF)")
+file_name = "../Selvaraaj_Joseph_Daniel_resume.pdf"
 
 with pdfplumber.open(file_name) as pdf:
     first_page = pdf.pages[0]
     text = first_page.extract_text()
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(text)
-    matcher = Matcher(nlp.vocab)
-    pattern = [
-        {},
-        {},
-        {}
-    ]
-    matcher.add("")
-    for ent in doc.ents:
-        print(ent.text,ent.label_)
-
-
+    parser = Parser()
+    resume = parser.parse_resume(text)
+    print(resume)
