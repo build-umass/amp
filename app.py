@@ -41,7 +41,7 @@ class Resume:
         self.email = email
 
     def __repr__(self):
-        return f"name : {self.name} ; GPA : {self.gpa} ; skills: {self.skills} ; company names : {self.company_names}"
+        return f"name : {self.name} ; GPA : {self.gpa} ; skills: {self.skills}; email: {self.email} ; company names : {self.company_names}"
 
 
 class Data:
@@ -61,20 +61,30 @@ class Parser:
     def __init__(self):
         self.data = Data("skills.csv")
 
+    def parse_gpa(self, doc, index):
+        if index >= len(doc):
+            return float("-inf")
+        if doc[index].like_num:
+            return float(doc[index].text)
+        return self.parse_gpa(doc,index+1)
+
     def parse_resume(self, text):
         resume = Resume()
 
         nlp = spacy.load("en_core_web_sm")
         doc = nlp(text)
-
+        for token in doc:
+            print(token)
         # Assuming the GPA value is a single token (that is there is no space between the numbers and '.' )
         for token in doc:
             token_text = token.text.lower()
             if token_text == "gpa":
-                resume.set_gpa(float(token.right_edge.text))
+                resume.set_gpa(self.parse_gpa(doc, token.i + 1))
             elif token_text in self.data.skills:
                 resume.add_skills(token_text)
-            elif re.fullmatch(r"\w+@\w+.\w+", token_text) is not None:
+            # elif re.fullmatch(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", token_text, re.IGNORECASE) is not None:
+            #     resume.set_email(token_text)
+            elif token.like_email:
                 resume.set_email(token_text)
 
         name = ""
@@ -89,7 +99,7 @@ class Parser:
 
 
 # file_name = input("Enter the location of the resume (PDF)")
-file_name = "../Selvaraaj_Joseph_Daniel_resume.pdf"
+file_name = "../resume.pdf"
 
 with pdfplumber.open(file_name) as pdf:
     first_page = pdf.pages[0]
