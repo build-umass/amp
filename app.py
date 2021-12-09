@@ -18,6 +18,8 @@ import pdfplumber
 import spacy
 import csv
 import plac
+import json
+import pandas as pd
 
 
 class Resume:
@@ -34,41 +36,99 @@ class Resume:
     def set_gpa(self, gpa):
         self.gpa = gpa
 
-    def add_skills(self, skill):
+    def add_company(self, company):
+        self.company_names.append(company)
+
+    def add_skill(self, skill):
         self.skills.add(skill)
 
     def set_email(self, email):
         self.email = email
 
     def __repr__(self):
-        return f"name : {self.name} ; GPA : {self.gpa} ; skills: {self.skills}; email: {self.email} ; company names : {self.company_names}"
+        return f"name : {self.name} ; GPA : {self.gpa} ; skills: {self.skills}; email: {self.email} ; company names : {self.company_names} "
+
+
+class DataPoint:
+    def __init__(self, text):
+        self.content = text
+        self.annotations = []
+
+    def annotation_maker(self, label, text, start, end):
+        return {"label": label, "point": {"start": start, "end": end, "text": text}}
+
+    def set_name(self, name, start, end):
+        self.annotations.append(self.annotation_maker("name", name, start, end))
+
+    def set_gpa(self, gpa, start, end):
+        self.annotations.append(self.annotation_maker("gpa", gpa, start, end))
+
+    def add_company(self, company, start, end):
+        self.annotations.append(self.annotation_maker("company", company, start, end))
+
+    def add_skill(self, skill, start, end):
+        self.annotations.append(self.annotation_maker("skill", skill, start, end))
+
+    def set_email(self, email, start, end):
+        self.annotations.append(self.annotation_maker("name", email, start, end))
+
+    def to_json(self):
+        return json.dumps({"content": self.content,
+                           "annotations": self.annotations})
+
+
+class DataCollector:
+    def __init__(self):
+        self.db = set()
+
+    def add_data_point(self, data):
+        self.db.add(data)
+
+    def write_out(self, path="./data_collection/resumes.json"):
+        with open(path, "a") as f:
+            for data in self.db:
+                f.write(data.to_json())
+                f.write("\n")
 
 
 class Data:
-    def __init__(self, loc):
+    def __init__(self, loc,col):
         self.loc = loc
-        self.skills = set()
-        self.loadSkills()
+        self.set = set()
+        self.load(col)
 
-    def loadSkills(self):
-        with open(self.loc, "r", encoding="utf8") as f:
-            csv_reader = csv.reader(f)
-            for row in csv_reader:
-                self.skills.add(row[0].lower().strip())
+    def load(self,col_name):
+        df_chunks = []
+        for chunk in pd.read_csv(self.loc,encoding="utf8",chunksize=1000):
+            df = chunk.dropna()
+            df_chunks.append(df[col_name].str.lower())
+        df = pd.concat(df_chunks)
+        self.set = set(df.unique())
+        print("Loaded")
+
+        # with open(self.loc, "r", encoding="utf8") as f:
+        #     csv_reader = csv.reader(f)
+        #     for row in csv_reader:
+        #         self.set.add(row[col].lower().strip())
+
+    def __iter__(self):
+        return iter(self.set)
 
 
 class Parser:
-    def __init__(self, skills_path="./assests/skills_2.csv"):
-        self.data = Data(skills_path)
+    def __init__(self, skills_path="./assests/skills_2.csv", companies_path="./assests/companies.csv"):
+        self.skills = Data(skills_path,"name")
+        self.companies = Data(companies_path,"name")
+        self.data_collector = DataCollector()
 
     def parse_gpa(self, doc, index):
         if index >= len(doc):
-            return float("-inf")
+            return float("-inf"), -1
         if doc[index].like_num:
-            return float(doc[index].text)
+            return float(doc[index].text), index
         return self.parse_gpa(doc, index + 1)
 
-    def parse_resume(self, resume_path = "../resume.pdf"):
+    def parse_resume(self, resume_path="../resume.pdf"):
         with pdfplumber.open(resume_path) as pdf:
             first_page = pdf.pages[0]
             text = first_page.extract_text()
@@ -77,30 +137,49 @@ class Parser:
 
     def parse_resume_text(self, text):
         resume = Resume()
-
+        data_point = DataPoint(text)
+        print("Started")
         nlp = spacy.load("en_core_web_sm")
         doc = nlp(text)
         # Assuming the GPA value is a single token (that is there is no space between the numbers and '.' )
-        for token in doc:
+        for i,token in enumerate(doc):
             token_text = token.text.lower()
+            start, end = token.idx, token.idx + len(token)
             if token_text == "gpa":
-                resume.set_gpa(self.parse_gpa(doc, token.i + 1))
-            elif token_text in self.data.skills:
-                resume.add_skills(token_text)
+                gpa, index = self.parse_gpa(doc, token.i + 1)
+                resume.set_gpa(gpa)
+                token = doc[index]
+                start, end = token.idx, token.idx + len(token)
+                data_point.set_gpa(gpa, start, end)
+            elif token_text in self.skills:
+                resume.add_skill(token_text)
+                data_point.add_skill(token_text, start, end)
+            elif token_text in self.companies:
+                resume.add_company(token_text)
+                data_point.add_company(token_text, start, end)
             elif token.like_email:
                 resume.set_email(token_text)
+                data_point.set_email(token_text, start, end)
+            print(i)
 
         name = ""
+        start, end = -1, -1
         min_index = float("inf")
         for ent in doc.ents:
             if ent.label_ == "PERSON" and ent.start < min_index:
                 min_index = ent.start
-                name = ent.text
+                name, start, end = ent.text, ent.start, ent.end
         resume.set_name(name)
+        data_point.set_name(name, start, end)
 
+        self.data_collector.add_data_point(data_point)
         return resume
+
+    def write(self):
+        self.data_collector.write_out()
+
 
 if __name__ == "__main__":
     parser = Parser()
     plac.call(parser.parse_resume)
-
+    parser.write()

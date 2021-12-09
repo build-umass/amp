@@ -3,21 +3,33 @@ import spacy
 from spacy.util import filter_spans
 from spacy.tokens import DocBin
 import plac
+import re
+
 
 class Trainer:
-    def prepare_data(self,json_path, write_path):
+    @staticmethod
+    def prepare_data(json_path="./assests/train.json", write_path="./corpus/train.spacy"):
         train_data_set = DocBin()
+        invalid_token = re.compile(r"\s")
         nlp = spacy.blank("en")
         with open(json_path, "r", encoding="utf8") as f:
             for line in f:
                 record = json.loads(line)
-                doc = nlp(record["content"])
+                text = record["content"]
+                doc = nlp(text)
                 ents = []
                 for ann in record["annotation"]:
+                    start = ann["points"][0]["start"]
+                    end = ann["points"][0]["end"] + 1
                     for label in ann["label"]:
-                        span = doc.char_span(ann["points"][0]["start"],ann["points"][0]["end"] + 1,label = label)
-                        if span is not None:
-                            ents.append(span)
+                        while start < len(text) and invalid_token.match(text[start]):
+                            start += 1
+                        while end > 1 and invalid_token.match(text[end - 1]):
+                            end -= 1
+                        if start <=end:
+                            span = doc.char_span(start, end, label=label)
+                            if span is not None:
+                                ents.append(span)
                 ents = filter_spans(ents)
                 doc.ents = ents
                 train_data_set.add(doc)
@@ -37,5 +49,4 @@ class Trainer:
 
 
 if __name__ == "__main__":
-    trainer = Trainer()
-    plac.call(trainer.prepare_data)
+    plac.call(Trainer.prepare_data)
