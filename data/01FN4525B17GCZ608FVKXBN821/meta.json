@@ -1,0 +1,17 @@
+{
+	"ulid": "01FN4525B17GCZ608FVKXBN821",
+	"minTime": 1637585006348,
+	"maxTime": 1637589600000,
+	"stats": {
+		"numSamples": 19142,
+		"numSeries": 563,
+		"numChunks": 563
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01FN4525B17GCZ608FVKXBN821"
+		]
+	},
+	"version": 1
+}

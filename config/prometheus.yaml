@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: rnd
+    environment: poc-environment
+    service: prometheus
+    region: local
+    dc: local
+scrape_configs:
+- job_name: prometheus
+  scrape_interval: 30s
+  scrape_timeout: 30s
+  honor_labels: true
+  static_configs:
+  - targets: ['prometheus-service:9090']
+- job_name: mongodb
+  scrape_interval: 30s
+  scrape_timeout: 30s
+  honor_labels: true
+  static_configs:
+  - targets: ['mongodb-exporter-service:9001']

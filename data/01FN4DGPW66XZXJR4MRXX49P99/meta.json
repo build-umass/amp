@@ -1,0 +1,17 @@
+{
+	"ulid": "01FN4DGPW66XZXJR4MRXX49P99",
+	"minTime": 1637589620065,
+	"maxTime": 1637596800000,
+	"stats": {
+		"numSamples": 98584,
+		"numSeries": 563,
+		"numChunks": 1126
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01FN4DGPW66XZXJR4MRXX49P99"
+		]
+	},
+	"version": 1
+}
