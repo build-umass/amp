@@ -1,0 +1,20 @@
+exports = function(payload, response) {
+  body = JSON.parse(payload.body.text());
+  return addDoc(body.values,body.collecName)
+};
+
+function addDoc(doc,collecName){
+  const mongodb = context.services.get("mongodb-atlas");
+  const db = mongodb.db('Forms');
+  const collection = db.collection(collecName);
+
+  if (doc!= null){
+    collection.insertOne(doc)
+    .then(result => console.log(`Successfully inserted item with _id: ${result.insertedId}`))
+    .catch(err => console.error(`Failed to insert item: ${err}`))
+    return true
+  }else{
+    console.log("Doc is null")
+    return false
+  }
+}

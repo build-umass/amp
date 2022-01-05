@@ -1,0 +1,40 @@
+let sheetId = "1QNGlMuxetR3mrc8rbaIg54hSqX4ioUWAsdztTbl7HdE";
+let formId = '1DBFOL_gHO_rstgSv25na6rn00EORdyDmrTAG6KWn2q8';
+
+function setUpTrigger() {
+  let sheet = SpreadsheetApp.openById(sheetId);
+  ScriptApp.newTrigger('pushToMongo')
+  .forSpreadsheet(sheet)
+  .onFormSubmit()
+  .create();
+}
+
+function pushAllResponse(){
+  let form = FormApp.openById(formId);
+  let formResponses = form.getResponses();
+  for (let i = 0; i < formResponses.length; i++) {
+    let formResponse = formResponses[i];
+    let itemResponses = formResponse.getItemResponses();
+    let res = {}
+    for (let j = 0; j < itemResponses.length; j++) {
+      let itemResponse = itemResponses[j];
+      res[itemResponse.getItem().getTitle()] = itemResponse.getResponse()
+    }
+    pushToMongo({namedValues : res})
+  }
+}
+
+function pushToMongo(event){
+  let webhook = "https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/amp-vjzhz/service/addRecord/incoming_webhook/addRecord"
+
+  let payload = {values : event.namedValues, collecName : sheetId}
+  payload = JSON.stringify(payload)
+
+  let requestOptions = {
+    'method' : 'post',
+    'contentType': 'application/json',
+    'payload': payload
+  };
+
+  UrlFetchApp.fetch(webhook,requestOptions)
+}

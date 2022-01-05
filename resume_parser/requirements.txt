@@ -1,0 +1,3 @@
+pdfplumber==0.5.28
+spacy==3.2.0
+plac~=1.3.4
