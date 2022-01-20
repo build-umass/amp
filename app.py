@@ -22,6 +22,10 @@ import requests
 import json
 import pandas as pd
 
+from urllib.parse import unquote
+import boto3
+from io import BytesIO
+
 
 class Resume:
     def __init__(self):
@@ -139,12 +143,15 @@ class Parser:
             return float(doc[index].text), index
         return self.parse_gpa(doc, index + 1)
 
-    def parse_resume(self, resume_path="../resume.pdf"):
+    def parse_resume(self, resume_path="./resume.pdf"):
         with pdfplumber.open(resume_path) as pdf:
-            first_page = pdf.pages[0]
-            text = first_page.extract_text()
-            resume = self.parse_resume_text(text)
-            print(resume)
+            self.parse_resume_S3(pdf)
+
+    def parse_resume_S3(self,pdf):
+        first_page = pdf.pages[0]
+        text = first_page.extract_text()
+        resume = self.parse_resume_text(text)
+        print(resume)
 
     def parse_resume_text(self, text):
         resume = Resume()
@@ -195,4 +202,15 @@ if __name__ == "__main__":
     plac.call(parser.parse_resume)
     parser.write()
 
+def handler(event, context):
+    bkt = event['Records'][0]['s3']['bucket']['name']
+    key = unquote(event['Records'][0]['s3']['object']['key'])
+    print(bkt, key)
+
+    s3 = boto3.resource('s3')
+    obj = s3.Object(bkt, key)
+    file = obj.get()['Body'].read()
+    pdf = pdfplumber.open(BytesIO(file))
+    parser = Parser()
+    parser.parse_resume_S3(pdf)
 
