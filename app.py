@@ -16,8 +16,9 @@ companies names
 
 import pdfplumber
 import spacy
-import csv
+# import csv
 import plac
+import requests
 import json
 import pandas as pd
 
@@ -75,7 +76,9 @@ class DataPoint:
     def to_json(self):
         return json.dumps({"content": self.content,
                            "annotations": self.annotations})
-
+    def get_data(self):
+        return {"content": self.content,
+                           "annotations": self.annotations}
 
 class DataCollector:
     def __init__(self):
@@ -85,13 +88,21 @@ class DataCollector:
         self.db.add(data)
 
     def write_out(self, path="./data_collection/resumes.json"):
-        with open(path, "a") as f:
+        with open(path, "a+") as f:
             for data in self.db:
                 f.write(data.to_json())
                 f.write("\n")
 
+    def write_to_mongo(self):
+        url = 'https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/amp-vjzhz/service/addRecord/incoming_webhook/addRecord'
 
-class Data:
+        for data in self.db:
+            dbName = "Resume"
+            collecName = "Parse"
+            myobj = {'db': dbName, 'collecName': collecName, 'doc': data.get_data()}
+            requests.post(url, json=myobj)
+
+class DataSet:
     def __init__(self, loc,col):
         self.loc = loc
         self.set = set()
@@ -116,9 +127,9 @@ class Data:
 
 
 class Parser:
-    def __init__(self, skills_path="./assests/skills_2.csv", companies_path="./assests/companies.csv"):
-        self.skills = Data(skills_path,"name")
-        self.companies = Data(companies_path,"name")
+    def __init__(self, skills_path="./assests/skills.csv", companies_path="./assests/companies.csv"):
+        self.skills = DataSet(skills_path,"name")
+        self.companies = DataSet(companies_path,"name")
         self.data_collector = DataCollector()
 
     def parse_gpa(self, doc, index):
@@ -160,8 +171,8 @@ class Parser:
             elif token.like_email:
                 resume.set_email(token_text)
                 data_point.set_email(token_text, start, end)
-            print(i)
 
+        #Extract name
         name = ""
         start, end = -1, -1
         min_index = float("inf")
@@ -176,10 +187,12 @@ class Parser:
         return resume
 
     def write(self):
-        self.data_collector.write_out()
+        self.data_collector.write_to_mongo()
 
 
 if __name__ == "__main__":
     parser = Parser()
     plac.call(parser.parse_resume)
     parser.write()
+
+
