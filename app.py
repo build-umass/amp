@@ -210,7 +210,10 @@ def handler(event, context):
     s3 = boto3.resource('s3')
     obj = s3.Object(bkt, key)
     file = obj.get()['Body'].read()
+    print("Got PDF")
     pdf = pdfplumber.open(BytesIO(file))
+    print("Loaded PDF")
     parser = Parser()
     parser.parse_resume_S3(pdf)
+    parser.write()
 

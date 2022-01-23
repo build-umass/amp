@@ -1,11 +1,11 @@
 exports = function(payload, response) {
-  body = JSON.parse(payload.body.text());
-  return addDoc(body.values,body.collecName)
+  body = JSON.parse(payload.body.text())
+  return addDoc(body.db,body.collecName,body.doc)
 };
 
-function addDoc(doc,collecName){
+function addDoc(dbName,collecName,doc){
   const mongodb = context.services.get("mongodb-atlas");
-  const db = mongodb.db('Forms');
+  const db = mongodb.db(dbName);
   const collection = db.collection(collecName);
 
   if (doc!= null){

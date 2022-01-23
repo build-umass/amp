@@ -10,6 +10,7 @@ function setUpTrigger() {
 }
 
 function pushAllResponse(){
+  let i = 0;
   let form = FormApp.openById(formId);
   let formResponses = form.getResponses();
   for (let i = 0; i < formResponses.length; i++) {
@@ -18,49 +19,80 @@ function pushAllResponse(){
     let res = {}
     for (let j = 0; j < itemResponses.length; j++) {
       let itemResponse = itemResponses[j];
-      res[itemResponse.getItem().getTitle()] = itemResponse.getResponse()
+      res[itemResponse.getItem().getTitle()] = itemResponse.getResponse();
     }
     pushToMongo({namedValues : res})
   }
 }
 
 function pushToMongo(event){
-  // let webhook = "https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/amp-vjzhz/service/addRecord/incoming_webhook/addRecord"
   let webhook = "https://i3dlehzm2b.execute-api.us-east-1.amazonaws.com/v1/formdata"
 
-  let payload = {values : event.namedValues, collecName : sheetId}
+  let payload = {values : event.namedValues, collecName : sheetId};
+
+  // Store resume in S3
   resumeString = "Resume (if you have one, please submit - we'll be using it to help out for our internal process)"
-  resumeLink = payload["values"][resumeString]
+  resumeLink = payload["values"][resumeString];
 
   if (resumeLink){
     resumeLink = resumeLink[0]
-    driveId = MD5(resumeLink.substring(resumeLink.indexOf('=')+1))
-    payload["values"][resumeString][0] = driveId
-    // uploadToS3(driveId)
+    driveId = resumeLink.substring(resumeLink.indexOf('=')+1)
+    if (uploadToS3(driveId) == -1){
+      return
+    }
+    payload["values"][resumeString][0] = MD5(driveId)+".pdf";
   }
 
-  payload = JSON.stringify(payload)
+  // // Score the application
+  // signedURL = UrlFetchApp.fetch('https://i3dlehzm2b.execute-api.us-east-1.amazonaws.com/v1/score_applicant?payload='+payload,{method:'GET'});
+  // Logger.log(signedURL.getContentText());
+  // // signedURL = JSON.parse(signedURL);
+  // console.log(signedURL);
+  // // console.log(payload);
+  // // scoreApplication(payload);
 
-  // let requestOptions = {
-  //   'method' : 'post',
-  //   'contentType': 'application/json',
-  //   'payload': payload
-  // };
+  // payload = JSON.stringify(payload)
 
-  // UrlFetchApp.fetch(webhook,requestOptions)
+  // // let requestOptions = {
+  // //   'method' : 'post',
+  // //   'contentType': 'application/json',
+  // //   'payload': payload
+  // // };
+
+  // // UrlFetchApp.fetch(webhook,requestOptions)
+}
+
+function scoreApplication(payload) {
+
+
+  /*
+  const result = UrlFetchApp.fetch(signedURL["uploadURL"], {
+    method: 'PUT',
+    payload: payload,
+    muteHttpExceptions:true
+  });
+  */
 }
 
 async function uploadToS3(driveId){
-  f = DriveApp.getFileById(driveId)
+  let f;
+
+  try{
+    f = DriveApp.getFileById(driveId)
+  }catch(error){
+    return -1
+  }
+
   pdf = f.getBlob().getAs('application/pdf')
-  signedURL = UrlFetchApp.fetch('https://i3dlehzm2b.execute-api.us-east-1.amazonaws.com/v1/upload?key='+driveId,{method:'GET'})
+  signedURL = UrlFetchApp.fetch('https://i3dlehzm2b.execute-api.us-east-1.amazonaws.com/v1/upload?key='+MD5(driveId),{method:'GET'})
   signedURL = JSON.parse(JSON.parse(signedURL))
+
   const result = await UrlFetchApp.fetch(signedURL["uploadURL"], {
     method: 'PUT',
     payload: pdf,
     muteHttpExceptions:true
   })
-  f.setTrashed(true)
+  // f.setTrashed(true)
 }
 
 var MD5 = function (string) {
