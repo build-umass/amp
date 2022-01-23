@@ -10,6 +10,7 @@ function setUpTrigger() {
 }
 
 function pushAllResponse(){
+  let i = 0;
   let form = FormApp.openById(formId);
   let formResponses = form.getResponses();
   for (let i = 0; i < formResponses.length; i++) {
@@ -21,6 +22,8 @@ function pushAllResponse(){
       res[itemResponse.getItem().getTitle()] = itemResponse.getResponse();
     }
     pushToMongo({namedValues : res})
+    // i += 1;
+    // if(i >= 1) break;
   }
 }
 
@@ -72,6 +75,11 @@ function pushToMongo(event){
   }
   payload["values"]["Programming Languages/Frameworks/Other Skills"] = json_skills
 
+  // Convert GPA to Number
+  payload["values"]["GPA"] = Number(payload["values"]["GPA"])
+  // Convert year of graduation to Number
+  payload["values"]["Year of Graduation"] = Number(payload["values"]["Year of Graduation"])
+
   // Convert commit time from string --> int
   let commitTime = parseInt(payload["values"]["How many hours per week can you commit to BUILD?"]);
   payload["values"]["How many hours per week can you commit to BUILD?"] = commitTime;
@@ -93,7 +101,7 @@ function pushToMongo(event){
 
   payload = JSON.stringify(payload);
   console.log(payload);
-  // scoreApplication(payload);
+  scoreApplication(payload);
 
   // let requestOptions = {
   //   'method' : 'post',
