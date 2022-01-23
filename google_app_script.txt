@@ -41,6 +41,7 @@ function pushToMongo(event){
     // uploadToS3(driveId)
   }
 
+  // Convert skills to something quantifiable
   skills_list = payload["values"]["Programming Languages/Frameworks/Other Skills"]
   let skills_map = {
     "Advanced": 3,
@@ -70,6 +71,26 @@ function pushToMongo(event){
     "Machine Learning/AI": skills_map[skills_list[18]]
   }
   payload["values"]["Programming Languages/Frameworks/Other Skills"] = json_skills
+
+  // Convert commit time from string --> int
+  let commitTime = parseInt(payload["values"]["How many hours per week can you commit to BUILD?"]);
+  payload["values"]["How many hours per week can you commit to BUILD?"] = commitTime;
+
+  // Convert Yes --> True, No -> False
+  let firstMeetingTime = payload["values"]["Will you be able to regularly attend weekly Monday @ 5:30pm general body meetings?"]
+  if(firstMeetingTime == "Yes") {
+    payload["values"]["Will you be able to regularly attend weekly Monday @ 5:30pm general body meetings?"] = true;
+  } else if(firstMeetingTime == "No") {
+    payload["values"]["Will you be able to regularly attend weekly Monday @ 5:30pm general body meetings?"] = false;
+  }
+
+  let secondMeetingTime = payload["values"]["If we moved our regularly attending weekly meeting to Monday @ 7:00 pm, could you attend? (We realized courses go from 5:30-6:45 this sem)"]
+  if(secondMeetingTime == "Yes") {
+    payload["values"]["If we moved our regularly attending weekly meeting to Monday @ 7:00 pm, could you attend? (We realized courses go from 5:30-6:45 this sem)"] = true;
+  } else if(secondMeetingTime == "No") {
+    payload["values"]["If we moved our regularly attending weekly meeting to Monday @ 7:00 pm, could you attend? (We realized courses go from 5:30-6:45 this sem)"] = false;
+  }
+
   payload = JSON.stringify(payload);
   console.log(payload);
   // scoreApplication(payload);
