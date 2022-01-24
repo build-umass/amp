@@ -4,16 +4,26 @@ import boto3
 import json
 import datetime
 
+'''
+from urllib import request
+def write_to_mongo(data, dbName, collecName, headers={'Content-Type':'application/json'}):
+    url = 'https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/amp-vjzhz/service/addRecord/incoming_webhook/addRecord'
+    data = json.dumps({'db': dbName, 'collecName': collecName, 'doc': data})
+    # if data is not in bytes, convert to it to utf-8 bytes
+    bindata = data if type(data) == bytes else data.encode('utf-8')
+    req = request.Request(url, bindata, headers)
+    resp = request.urlopen(req)
+    return resp.read(), resp.getheaders()
+'''
 def lambda_handler(event, context):
     # TODO implement
-    
     try:
         applicant_info = event["values"]
         year_graduate = applicant_info["Year of Graduation"]
         gpa = applicant_info["GPA"]
         majors = applicant_info["Major(s)"]
         classes = applicant_info["Classes Taken Already & Currently Enrolled (or equivalent if similar) ex. cs 589 = stats 697ml"]
-        skills = applicant_info["Programming Languages/Frameworks/Other Skills"]
+        skills_map = applicant_info["skills_adjusted_score"]
         commit_time = applicant_info["How many hours per week can you commit to BUILD?"]
         first_regularly_meeting = applicant_info["Will you be able to regularly attend weekly Monday @ 5:30pm general body meetings?"]
         second_regularly_meeting = applicant_info["If we moved our regularly attending weekly meeting to Monday @ 7:00 pm, could you attend? (We realized courses go from 5:30-6:45 this sem)"]
@@ -22,8 +32,9 @@ def lambda_handler(event, context):
         
         # Now, let's evaluate our candidates
         
+        
         # GPA_WEIGHT = GPA * 4
-        GPA_WEIGHT = gpa * 4
+        GPA_WEIGHT = gpa
         # Classes taken
             # If 600+ taken (+10 points)
             # If 500+ taken (+7 points each)
@@ -54,49 +65,58 @@ def lambda_handler(event, context):
                 classes_score += 10
             elif classes[i].startswith("CS 5"):
                 classes_score += 7
-            elif classes_score[i] in five_point_class_set:
+            elif classes[i] in five_point_class_set:
                 classes_score += 5
-            elif classes_score[i] in four_point_class_set:
+            elif classes[i] in four_point_class_set:
                 classes_score += 4
-            elif classes_score[i] in three_point_class_set:
+            elif classes[i] in three_point_class_set:
                 classes_score += 3
-            elif classes_score[i] in two_point_class_set:
+            elif classes[i] in two_point_class_set:
                 classes_score += 2
             else:
                 classes_score += 1
         
         if "Computer Science" not in majors:
-            classes_score *= 3
+            classes_score *= 2
         elif len(majors) >= 2:
             classes_score *= 1.33
         
         # Total academic score = gpa weight + classes_score
         # final academic score = total academic score / (year of graduation * 5)
-        total_academic_score = (GPA_WEIGHT * classes_score) / (1 / (year_graduate + 0.5 - (datetime.datetime.today().year))) 
+        total_academic_score = (GPA_WEIGHT * classes_score) / (1 / (year_graduate + 0.5 - (datetime.datetime.today().year)) * 6) 
         
-
         # Commitment time (based on hours given) 
         commit_time_weight = commit_time * 4       
         
         # Can meet at those times
             # Yes -> +5 points, No -> 0 point
         meet_times = 10 if first_regularly_meeting or second_regularly_meeting else 0
-        # Skills ranking (based on projects done for BUILD)
-        #
         
-        final_score = classes_score + commit_time_weight + meet_times
-            
+        # Skills ranking (based on projects done for BUILD)
+        skill_score = 0
+        for skill, conf_score in skills_map.items():
+            skill_score += conf_score
+        
+        final_score = total_academic_score + commit_time_weight + meet_times + skill_score
+        
         final_evaluate = {
+            "email": applicant_info["School Email"],
             "first_name": applicant_info["First Name"],
             "last_name": applicant_info["Last Name"],
-            "email": applicant_info["School Email"],
+            "graduation": year_graduate,
             "final_score": final_score,
             "commit_time_weight": commit_time_weight,
             "classes_score": classes_score,
+            "total_academic_score": total_academic_score,
+            "gpa": gpa,
+            "skill_score": skill_score,
             "meet_times": meet_times
         }
         
+        # dbName = "applicant"
+        # collecName = "score"
+        # write_to_mongo(final_evaluate, db)
         
-        return {"status": "success", "message": applicant_info}
+        return {"status": 200, "message": final_evaluate}
     except Exception as e:
-        raise e
+        return {"status": 403, "message": e}

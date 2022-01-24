@@ -1,79 +1,99 @@
 {
   "values": {
-    "First Name": "AADIT",
-    "Last Name": "BHATIA",
-    "School Email": "aaditbhatia@umass.edu",
-    "GPA": "3.67",
-    "Year of Graduation": [
-      "2024"
-    ],
+    "First Name": "Timothy",
+    "Last Name": "Nguyen",
+    "School Email": "timothynguye@umass.edu",
+    "GPA": 3.84,
+    "Year of Graduation": 2022,
     "Major(s)": [
       "Computer Science"
     ],
     "Minor(s)": "",
-    "GitHub": "https://github.com/AaditBhatia",
-    "LinkedIn": "https://www.linkedin.com/in/aaditbhatia/",
+    "GitHub": "https://timothynguyen.github.io/TimothyNguyen/",
+    "LinkedIn": "https://www.linkedin.com/in/timothy-nguyen-414525144/",
     "Classes Taken Already & Currently Enrolled (or equivalent if similar) ex. cs 589 = stats 697ml": [
       "CS 121",
       "CS 187",
       "CS 220",
-      "CS 240"
+      "CS 230",
+      "CS 240",
+      "CS 250",
+      "CS 311",
+      "CS 320/326",
+      "CS 345",
+      "CS 377",
+      "CS 383",
+      "CS 410/610",
+      "CS 420",
+      "CS 453",
+      "CS 490A",
+      "CS 497S",
+      "CS 514",
+      "CS 546",
+      "CS 589",
+      "Math 131",
+      "Math 132",
+      "Math 233",
+      "Math 235",
+      "Math 545",
+      "Stats 515", 
+      "Stats 516",
+      "Stats 525"
     ],
-    "Programming Languages/Frameworks/Other Skills": [
-      "Advanced",
-      "Advanced",
-      "Advanced",
-      "Intermediate",
-      "Advanced",
-      "Advanced",
-      "Don\"t Know",
-      "Intermediate",
-      "Basic",
-      "Intermediate",
-      "Don\"t Know",
-      "Don\"t Know",
-      "Basic",
-      "Don\"t Know",
-      "Intermediate",
-      "Basic",
-      "Don\"t Know",
-      "Don\"t Know",
-      "Basic"
-    ],
+    "Programming Languages/Frameworks/Other Skills": {
+      "Java": 2,
+      "JavaScript": 2,
+      "Python": 2,
+      "C/C++": 2,
+      "HTML": 2,
+      "CSS": 2,
+      "Vue.js": 1,
+      "React.js": 3,
+      "Next.js/Gatsby/NetlifyCMS": 2,
+      "Node.js/Express": 2,
+      "SQL (Postgres or MySQL or simillar)": 2,
+      "NoSQL (MongoDB or similar)": 2,
+      "AWS or related cloud frameworks": 1,
+      "CI/CD": 1,
+      "Git/Agile": 2,
+      "Django": 0,
+      "Flask": 2,
+      "NLP": 1,
+      "Machine Learning/AI": 1
+    },
     "1. List your most current work experience as the following: company, position, months of experience. For example: MathWorks, Software Engineer Intern, 3. If none, list: NA, NA, 0": "Good Times Television-I worked with a team to design versatile templates in HTML, CSS and Bootstrap to create a library of gaming interface designs .Collaborated on ideations to promote website & TV channel using hands-on marketing strategies.",
     "2. List your 2nd current work experience as the following: company, position, months of experience. For example: Google, Software Engineer Intern, 4. If none, list: NA, NA, 0": "Web-Dev Intern at the Center for Knowledge Communication. Working with team on back-end of Mathspring, a game-like mathematics tutor software that uses AI and ML algorithms. I used HTML, CSS, and LaTeX to design comprehensive UI for children of grades 5 and 6.",
     "3. List your 3rd current work experience as the following: company, position, months of experience. For example: Uber, Software Engineer Intern, 3. If none, list: NA, NA, 0": "Worked in the UMass Amherst Data Systems Group under assistant professor Marco Serafini and a PhD student. Implemented Machine Learning on Graphs using the Deep Graph Library and PyTorch. Performed hands on programming tasks such as constructing weighted graphs, performing different varieties of walks such as uniform random walk and deep walk using frontiers. Working on implementing parallel radix sort on GPU using cuda and c",
     "Why are you interested in joining BUILD?": "I have learnt several technologies, full stack web development, and done several projects on my own. However, I want to be a part of an organisation through which I can execute my skills on a bigger platform and scale. I want to create an application used by several people, and understand how working in a software engineering team can be like",
     "What is the coolest (CS related) thing you have worked on?": "I created a web application which was integrated with the Spotify API. I used React Js to create an application where people could find songs, create their own playlists and export that playlist to their Spotify account. The application also had other features such as adding and removing songs from their playlist, playing those songs. Since it was my first project with React, html, css and google ui designs and interfaces, I feel like it still feels like one of the coolest things I have worked on.",
     "What about computer science excites you?": "Computer Science is a very wide field, but has innovation and creation at its core. There are applications which can help me upload pictures which my mother can see from 8000 miles far away. A small comment on Twitter can cause protests, and influence elections. The simple idea, that my work can create an impact, and the power I feel with this skill excites me the most.",
-    "How many hours per week can you commit to BUILD?": "8",
-    "Will you be able to regularly attend weekly Monday @ 5:30pm general body meetings?": "Yes",
-    "If we moved our regularly attending weekly meeting to Monday @ 7:00 pm, could you attend? (We realized courses go from 5:30-6:45 this sem)": "Yes",
+    "How many hours per week can you commit to BUILD?": 8,
+    "Will you be able to regularly attend weekly Monday @ 5:30pm general body meetings?": true,
+    "If we moved our regularly attending weekly meeting to Monday @ 7:00 pm, could you attend? (We realized courses go from 5:30-6:45 this sem)": true,
     "Would you like to be considered for tech lead?": "Yes",
     "Anything else you want us to know?": "",
-    "How did you hear about us?": "CICS newsletter"
+    "How did you hear about us?": "CICS newsletter",
+    "skills_adjusted_score": {
+      "Java": 3,
+      "JavaScript": 4,
+      "Python": 4,
+      "C/C++": 3,
+      "HTML": 2.5,
+      "CSS": 2.5,
+      "Vue.js": 3,
+      "React.js": 9,
+      "Next.js/Gatsby/NetlifyCMS": 6,
+      "Node.js/Express": 5,
+      "SQL (Postgres or MySQL or simillar)": 6,
+      "NoSQL (MongoDB or similar)": 6,
+      "AWS or related cloud frameworks": 3,
+      "CI/CD": 2,
+      "Git/Agile": 4,
+      "Django": 0,
+      "Flask": 3,
+      "NLP": 3,
+      "Machine Learning/AI": 4
+    }
   },
   "collecName": "1m4vM0w8UF0DD5fFip7xtP6QVRc5jz2p5hoYeHljsR2A"
 }
-
-'''
-Java
-JavaScript
-Python
-C/C++
-HTML
-CSS
-Vue.js
-React.js
-Next.js/Gatsby/NetlifyCMS
-Node.js/Express
-SQL (Postgres or MySQL or simillar)
-NoSQL (MongoDB or similar)
-AWS or related cloud frameworks
-CI/CD
-Git/Agile
-Django
-Flask
-NLP
-Machine Learning/AI
-'''
